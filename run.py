@@ -22,7 +22,7 @@ client = pytumblr.TumblrRestClient(
 recPath = '/home/pi/crank/stills/'
 io = wiringpi2.GPIO(wiringpi2.GPIO.WPI_MODE_PINS)
 
-led = gaugette.rgbled.RgbLed(11,13,15)
+led = gaugette.rgbled.RgbLed.Worker(6,5,4)
 A_PIN  = 7
 B_PIN  = 9
 encoder = gaugette.rotary_encoder.RotaryEncoder.Worker(A_PIN, B_PIN)
@@ -36,15 +36,17 @@ cam.resolution = (320,240)
 while True:
 	delta = encoder.get_delta()
 	if delta < 0:
+		led.set(255,0,0)
 		print delta
 		antiRotCount = 0
 		rotCount = rotCount + 1
 		cam.capture(recPath + str(rotCount) +'.jpg', use_video_port=True)
 	if delta > 0:
+		led.set(255,255,255)
 		print antiRotCount
 		antiRotCount = antiRotCount + 1
 		if antiRotCount == 60:
-
+			led.set(0,255,0)
 			print 'done capturing frames'
 			recTime =   time.strftime("%Y%m%d-%Hh%Mm-%Ss")
 			print 'converting'
@@ -52,6 +54,7 @@ while True:
 			print 'chmodding'
 			subprocess.call('chmod 777 ' + gifPath + recTime + '.gif', shell=True)
 			print 'tumbling...'
+			led.set(255,255,0)
 			client.create_photo('crankcrankgif.tumblr.com', data= gifPath + recTime + '.gif')
 			dst_dir = recPath + recTime
 			print 'make dir'
